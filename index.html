@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pothole Detection</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0; /* Optional: Add a background color */
+            font-family: Arial, sans-serif; /* Optional: Change the font */
+        }
+
+        form {
+            text-align: center; /* Center content horizontally */
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff; /* Optional: Add a background color */
+        }
+
+        button {
+            background-color: #4CAF50; /* Green */
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        #results {
+            margin-top: 20px;
+            text-align: center;
+            display: none; /* Hidden by default */
+        }
+    </style>
+</head>
+<body>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <h1>Upload an Image</h1>
+        <input type="file" id="imageFile" name="image">
+        <button type="submit">Predict</button>
+    </form>
+
+    <div id="results">
+        <h2>Prediction Results</h2>
+        <p id="filename"></p>
+        <p id="prediction"></p>
+        <p id="pothole_detected"></p>
+        <p id="confidence"></p>
+    </div>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const fileInput = document.getElementById('imageFile');
+        const resultsDiv = document.getElementById('results');
+        const filenameP = document.getElementById('filename');
+        const predictionP = document.getElementById('prediction');
+        const potholeDetectedP = document.getElementById('pothole_detected');
+        const confidenceP = document.getElementById('confidence');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('Please select an image.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('http://localhost:8000/predict_image', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                filenameP.textContent = `Filename: ${data.filename}`;
+                predictionP.textContent = `Prediction: ${data.prediction}`;
+                potholeDetectedP.textContent = `Pothole Detected: ${data.pothole_detected}`;
+                confidenceP.textContent = `Confidence: ${data.confidence}`;
+                resultsDiv.style.display = 'block';
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred during prediction.');
+            }
+        });
+    </script>
+</body>
+</html>
